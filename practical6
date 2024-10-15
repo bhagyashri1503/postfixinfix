@@ -1,0 +1,216 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <math.h> 
+int prec(char c) 
+{ 
+if (c == '^') 
+return 3; 
+else if (c == '/' || c == '*') 
+return 2; 
+else if (c == '+' || c == '-') 
+return 1; 
+else 
+return -1; 
+} 
+char associativity(char c) 
+{ 
+if (c == '^') 
+return 'R'; 
+else 
+return 'L'; 
+} 
+void reverse(char *str, int len) 
+{ 
+int start = 0; 
+int end = len - 1; 
+while (start < end) 
+{ 
+char temp = str[start]; 
+str[start] = str[end]; 
+str[end] = temp; 
+start++; 
+end--; 
+} 
+} 
+void infixToPostfix(const char s[]) 
+{ 
+char result[100]; 
+int resultIndex = 0; 
+int len = strlen(s); 
+char stack[100]; 
+int stackIndex = -1; 
+for (int i = 0; i < len; i++) 
+{ 
+char c = s[i]; 
+if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) 
+{ 
+result[resultIndex++] = c; 
+} 
+else if (c == '(') 
+{ 
+stack[++stackIndex] = c; 
+} 
+else if (c == ')') 
+{ 
+while (stackIndex >= 0 && stack[stackIndex] != '(') 
+{ 
+result[resultIndex++] = stack[stackIndex--]; 
+} 
+stackIndex--; 
+} 
+else 
+{ 
+while (stackIndex >= 0 && 
+(prec(s[i]) < prec(stack[stackIndex]) || 
+(prec(s[i]) == prec(stack[stackIndex]) && associativity(s[i]) == 'L'))) 
+{ 
+result[resultIndex++] = stack[stackIndex--]; 
+} 
+stack[++stackIndex] = c; 
+} 
+} 
+while (stackIndex >= 0) 
+{ 
+result[resultIndex++] = stack[stackIndex--]; 
+} 
+result[resultIndex] = '\0'; 
+printf("Postfix of input infix is: %s\n", result); 
+} 
+void infixToPrefix(const char s[]) 
+{ 
+char result[100]; 
+int resultIndex = 0; 
+int len = strlen(s); 
+char stack[100]; 
+int stackIndex = -1; 
+char expr[100]; 
+strcpy(expr, s); 
+reverse(expr, len); 
+for (int i = 0; i < len; i++) 
+{ 
+if (expr[i] == '(') 
+expr[i] = ')'; 
+else if (expr[i] == ')') 
+expr[i] = '('; 
+} 
+for (int i = 0; i < len; i++) 
+{ 
+char c = expr[i]; 
+if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) 
+{ 
+result[resultIndex++] = c; 
+} 
+else if (c == '(') 
+{ 
+stack[++stackIndex] = c; 
+} 
+else if (c == ')') 
+{ 
+while (stackIndex >= 0 && stack[stackIndex] != '(') 
+{ 
+result[resultIndex++] = stack[stackIndex--]; 
+} 
+stackIndex--; 
+} 
+else 
+{ 
+while (stackIndex >= 0 && 
+(prec(c) < prec(stack[stackIndex]) || 
+(prec(c) == prec(stack[stackIndex]) && associativity(c) == 'L'))) 
+{ 
+result[resultIndex++] = stack[stackIndex--]; 
+} 
+stack[++stackIndex] = c; 
+} 
+} 
+while (stackIndex >= 0) 
+{ 
+result[resultIndex++] = stack[stackIndex--]; 
+} 
+result[resultIndex] = '\0'; 
+reverse(result, strlen(result)); 
+printf("Prefix of input infix is: %s\n", result); 
+} 
+struct Stack 
+{ 
+int data[100]; 
+int top; 
+}; 
+void init(struct Stack *st) 
+{ 
+st->top = -1; 
+} 
+void push(struct Stack *st, int value) 
+{ 
+st->data[++(st->top)] = value; 
+} 
+int pop(struct Stack *st) 
+{ 
+return st->data[(st->top)--]; 
+} 
+int postfixEvaluation(const char *s) 
+{ 
+struct Stack st; 
+init(&st); 
+for (int i = 0; s[i] != '\0'; i++) 
+{ 
+if (s[i] >= '0' && s[i] <= '9') 
+{ 
+push(&st, s[i] - '0'); 
+} 
+else 
+{ 
+int output2 = pop(&st); 
+int output1 = pop(&st); 
+switch (s[i]) 
+{ 
+case '+': 
+push(&st, output1 + output2); 
+break; 
+case '-': 
+push(&st, output1 - output2); 
+break; 
+case '*': 
+push(&st, output1 * output2); 
+break; 
+case '/': 
+push(&st, output1 / output2); 
+break; 
+case '^': 
+push(&st, pow(output1, output2)); 
+break; 
+} 
+} 
+} 
+return pop(&st); 
+} 
+int main() 
+{ 
+char expression[] = "745*+20+-"; 
+printf("Infix is: %s\n", expression); 
+int choose; 
+do 
+{ 
+printf("\nChoose the operation:\n1) Infix to Postfix\n2) Infix to Prefix\n3) Postfix Evaluation\n4) Exit\n");
+scanf("%d", &choose); 
+switch (choose) 
+{ 
+case 1: 
+infixToPostfix(expression); 
+break; 
+case 2: 
+infixToPrefix(expression); 
+break; 
+case 3: 
+printf("postfix evaluation of is %d\n", postfixEvaluation("745*+20+-")); 
+break; 
+case 4: 
+printf("Exiting...\n"); 
+break; 
+default: 
+printf("Invalid choice\n"); 
+} 
+} while (choose != 4); 
+return 0; 
+}
